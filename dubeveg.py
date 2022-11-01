@@ -6,7 +6,7 @@ Python version of the DUne, BEach, and VEGetation (DUBEVEG) model from Keijsers 
 
 Translated from Matlab by IRB Reeves
 
-Last update: 27 October 2022
+Last update: 31 October 2022
 
 __________________________________________________________________________________________________________________________________"""
 
@@ -521,7 +521,7 @@ start_time = time.time()  # Record time at start of simulation
 
 # Create an instance of the BMI class
 dubeveg = DUBEVEG(
-    name="30 yr, SLR 0, marine_processes, * pexposed",
+    name="30 yr, SLR 0",
     simulation_time_y=30,
     MHTrise=0.00,
     save_data=False,
@@ -548,7 +548,7 @@ print("Elapsed Time: ", SimDuration, "sec")
 # Save Results
 if dubeveg.save_data:
     filename = dubeveg.outputloc + "Sim_" + str(dubeveg.simnum)
-    dill.dump_module(filename)  # To re-load data: dill.load_session(filename)
+    dill.dump_module(filename)  # To re-load saved data, use dill.load_session(filename)
 
 # Temp Plot
 plt.matshow(dubeveg.topo * dubeveg.slabheight,
