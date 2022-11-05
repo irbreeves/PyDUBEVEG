@@ -6,12 +6,13 @@ Python version of the DUne, BEach, and VEGetation (DUBEVEG) model from Keijsers 
 
 Translated from Matlab by IRB Reeves
 
-Last update: 31 October 2022
+Last update: 5 November 2022
 
 __________________________________________________________________________________________________________________________________"""
 
 import numpy as np
 import math
+import copy
 
 
 def shadowzones2(topof, sh, lee, longshore, crossshore, direction):
@@ -102,7 +103,7 @@ def shiftslabs3_open3(erosprobs, deposprobs, hop, contour, longshore, crossshore
     # pickedup[:, -1 - hop: -1] = 0  # Do not pick any slab that are on the ladward boundary -- east only?
 
     totaldeposit = np.zeros([longshore, crossshore])
-    inmotion = pickedup  # Make copy of original erosion map
+    inmotion = copy.deepcopy(pickedup)  # Make copy of original erosion map
     numshifted = 0  # [slabs] Number of shifted cells weighted for transport distance
     transportdist = 0  # Transport distance [slab lengths] or [hop length]
     sum_contour = np.zeros([len(contour)])
@@ -314,7 +315,7 @@ def marine_processes3_diss3e(total_tide, msl, slabheight, cellsizef, topof, eqto
     # --------------------------------------
     # FILL TOPOGRAPHY TO EQUILIBRIUM
 
-    inundatedf = pexposed  # Bool matrix of cells that exposed to sea water
+    inundatedf = copy.deepcopy(pexposed)  # Bool matrix of cells that exposed to sea water
 
     # --------------------------------------
     # WAVES
@@ -359,7 +360,7 @@ def marine_processes3_diss3e(total_tide, msl, slabheight, cellsizef, topof, eqto
     pbare = 1 - m28f * vegf  # If vegf = 1, still some chance for being eroded
 
     # Ssumming up erosion probabilities
-    phydro = pwave
+    phydro = copy.deepcopy(pwave)
     phydro_ero = pwave_ero + pcurr
 
     # --------------------------------------
@@ -473,7 +474,7 @@ def marine_processes(total_tide, msl, slabheight, cellsizef, topof, eqtopof, veg
     # --------------------------------------
     # FILL TOPOGRAPHY TO EQUILIBRIUM
 
-    inundatedf = pexposed  # Inundated is the area that really receives sea water
+    inundatedf = copy.deepcopy(pexposed)  # Inundated is the area that really receives sea water
 
     # --------------------------------------
     # WAVES
@@ -611,7 +612,7 @@ def lateral_expansion(veg, dist, prob):
     veg = veg > 0
     vegpad = np.zeros(np.add(veg.shape, (2, 2)))
     vegpad[1: -1, 1: -1] = veg
-    veg3 = vegpad
+    veg3 = copy.deepcopy(vegpad)
 
     # Add shifted matrices to initial matrix to include boundaries
     for i in [-dist, 0, dist]:

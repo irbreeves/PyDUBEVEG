@@ -6,7 +6,7 @@ Python version of the DUne, BEach, and VEGetation (DUBEVEG) model from Keijsers 
 
 Translated from Matlab by IRB Reeves
 
-Last update: 31 October 2022
+Last update: 5 November 2022
 
 __________________________________________________________________________________________________________________________________"""
 
@@ -16,6 +16,7 @@ import math
 import dill
 import matplotlib.pyplot as plt
 import time
+import copy
 
 import routines_dubeveg as routine
 
@@ -166,7 +167,7 @@ class DUBEVEG:
             self._eqtopo = np.round(np.squeeze(self._eqtopo_initial[:, :, 0]) / self._slabheight_m)  # [slabs] Transform from m into number of slabs
         else:
             self._eqtopo = np.round(self._eqtopo_initial / self._slabheight_m)  # [slabs] Transform from m into number of slabs
-        eqtopo_i = self._eqtopo
+        eqtopo_i = copy.deepcopy(self._eqtopo)
 
         self._longshore, self._crossshore = topo0.shape * self._cellsize  # [m] Cross-shore/alongshore size of topography
 
@@ -201,8 +202,8 @@ class DUBEVEG:
         self._slabheight = round(self._slabheight_m * 100) / 100
         self._balance = self._topo * 0  # Initialise the sedimentation balance map [slabs]
         self._stability = self._topo * 0  # Initialise the stability map [slabs]
-        self._sp1_peak_at0 = self._sp1_peak  # Store initial peak growth of sp. 1
-        self._sp2_peak_at0 = self._sp2_peak  # Store initial peak growth of sp. 2
+        self._sp1_peak_at0 = copy.deepcopy(self._sp1_peak)  # Store initial peak growth of sp. 1
+        self._sp2_peak_at0 = copy.deepcopy(self._sp2_peak)  # Store initial peak growth of sp. 2
         self._inundated = np.zeros([self._longshore, self._crossshore])  # Initial area of wave/current action
         self._inundatedcum = np.zeros([self._longshore, self._crossshore])  # Initial area of sea action
         self._pbeachupdatecum = np.zeros([self._longshore, self._crossshore])  # Matrix for cumulative effect of hydrodynamics
@@ -265,7 +266,7 @@ class DUBEVEG:
         # --------------------------------------
         # SAND TRANSPORT
 
-        before = self._topo
+        before = copy.deepcopy(self._topo)
         self._gw = self._eqtopo * self._groundwater_depth
         sandmap = self._topo > self._MHT  # Boolean array, Returns True (1) for sandy cells
 
@@ -293,8 +294,8 @@ class DUBEVEG:
 
         if it % self._beachreset == 0:  # Update the inundated part of the beach
 
-            inundatedold = self._inundated  # Make a copy for later use
-            before1 = self._topo  # Copy of topo before it is changed
+            inundatedold = copy.deepcopy(self._inundated)  # Make a copy for later use
+            before1 = copy.deepcopy(self._topo)  # Copy of topo before it is changed
 
             # self._topo, self._inundated, pbeachupdate, diss, cumdiss, pwave = routine.marine_processes3_diss3e(
             #     self._waterlevels[self._beachcount],
@@ -350,8 +351,8 @@ class DUBEVEG:
             veg_multiplier = (1 + self._growth_reduction_timeseries[self._vegcount])  # For the long term reduction.
             self._sp1_peak = self._sp1_peak_at0 * veg_multiplier
             self._sp2_peak = self._sp2_peak_at0 * veg_multiplier
-            spec1_old = self._spec1
-            spec2_old = self._spec2
+            spec1_old = copy.deepcopy(self._spec1)
+            spec2_old = copy.deepcopy(self._spec2)
             self._spec1 = routine.growthfunction1_sens(self._spec1, self._balance * self._slabheight_m, self._sp1_a, self._sp1_b, self._sp1_c, self._sp1_d, self._sp1_e, self._sp1_peak)
             self._spec2 = routine.growthfunction2_sens(self._spec2, self._balance * self._slabheight_m, self._sp2_a, self._sp2_b, self._sp2_d, self._sp1_e, self._sp2_peak)
 
@@ -380,10 +381,10 @@ class DUBEVEG:
             self._spec2 = self._spec2 * (1 - self._pbeachupdatecum)  # Remove species where beach is reset
 
             # Limit to geomorphological range
-            spec1_geom = self._spec1
+            spec1_geom = copy.deepcopy(self._spec1)
             spec1_geom[self._spec1 < 0] = 0
             spec1_geom[self._spec1 > 1] = 1
-            spec2_geom = self._spec2
+            spec2_geom = copy.deepcopy(self._spec2)
             spec2_geom[self._spec2 < 0] = 0
             spec2_geom[self._spec2 > 1] = 1
             self._veg = spec1_geom + spec2_geom  # Update vegmap
@@ -470,7 +471,7 @@ class DUBEVEG:
         # --------------------------------------
         # RESET DOMAINS
 
-        balance_copy = self._balance
+        balance_copy = copy.deepcopy(self._balance)
         self._balance[:] = 0  # Reset the balance map
         self._inundated[:] = 0  # Reset part of beach with wave/current action
         self._pbeachupdatecum[:] = 0
